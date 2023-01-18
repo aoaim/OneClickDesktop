@@ -265,21 +265,6 @@ function install_guacamole_ubuntu_debian
 	echo "请耐心等待..."
 	echo 
 	systemctl daemon-reload
-	touch /etc/guacamole/guacd.conf
-	cat >> /etc/guacamole/guacd.conf << EOF
-[daemon]
-pid_file = /var/run/guacd.pid
-#log_level = debug
-
-[server]
-#bind_host = localhost
-bind_host = 127.0.0.1
-bind_port = 4822
-
-#[ssl]
-#server_certificate = /etc/ssl/certs/guacd.crt
-#server_key = /etc/ssl/private/guacd.key
-EOF
 	systemctl start guacd
 	systemctl enable guacd
 	ss -lnpt | grep guacd >/dev/null
@@ -416,6 +401,20 @@ function configure_guacamole_ubuntu_debian
 {
 	echo 
 	mkdir /etc/guacamole/
+	cat >> /etc/guacamole/guacd.conf << EOF
+[daemon]
+pid_file = /var/run/guacd.pid
+#log_level = debug
+
+[server]
+#bind_host = localhost
+bind_host = 127.0.0.1
+bind_port = 4822
+
+#[ssl]
+#server_certificate = /etc/ssl/certs/guacd.crt
+#server_key = /etc/ssl/private/guacd.key
+EOF
 	cat > /etc/guacamole/guacamole.properties <<END
 guacd-hostname: localhost
 guacd-port: 4822
