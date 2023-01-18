@@ -19,8 +19,8 @@
 #您可以在这里修改Guacamole源码下载链接。
 #访问https://guacamole.apache.org/releases/获取最新源码。
 
-GUACAMOLE_DOWNLOAD_LINK="https://mirrors.ocf.berkeley.edu/apache/guacamole/1.2.0/source/guacamole-server-1.2.0.tar.gz"
-GUACAMOLE_VERSION="1.2.0"
+GUACAMOLE_DOWNLOAD_LINK="https://mirrors.ocf.berkeley.edu/apache/guacamole/1.4.0/source/guacamole-server-1.4.0.tar.gz"
+GUACAMOLE_VERSION="1.4.0"
 
 #此脚本仅支持Ubuntu 18/20, Debian 10, 以及CentOS 7/8.
 #如果您试图再其他版本的操作系统中安装，可以在下面禁用OS检查开关。
@@ -50,7 +50,7 @@ function check_OS
 			if [ $? = 0 ] ; then
 				OS=UBUNTU20
 			else
-				say "很抱歉，此脚本仅支持Ubuntu 18/20, Debian 10, 以及CentOS 7/8操作系统。" red
+				say "很抱歉，此脚本仅支持Ubuntu 18/20, Debian 10/11, 以及CentOS 7/8操作系统。" red
 				echo 
 				exit 1
 			fi
@@ -60,9 +60,14 @@ function check_OS
 		if [ $? = 0 ] ; then
 			OS=DEBIAN10
 		else
-			say "很抱歉，此脚本仅支持Ubuntu 18/20, Debian 10, 以及CentOS 7/8操作系统。" red
-			echo 
-			exit 1
+			cat /etc/debian_version | grep "^11." >/dev/null
+			if [ $? = 0 ] ; then
+				OS=DEBIAN11
+			else
+				say "很抱歉，此脚本仅支持Ubuntu 18/20, Debian 10/11, 以及CentOS 7/8操作系统。" red
+				echo 
+				exit 1
+			fi
 		fi
 	elif [ -f /etc/redhat-release ] ; then
 		cat /etc/redhat-release | grep " 8." >/dev/null
@@ -79,13 +84,13 @@ function check_OS
 				say @B"如果安装好后无法访问您的服务器桌面，请考虑禁用firewalld或者selinux." yellow
 				echo 
 			else
-				say "很抱歉，此脚本仅支持Ubuntu 18/20, Debian 10, 以及CentOS 7/8操作系统。" red
+				say "很抱歉，此脚本仅支持Ubuntu 18/20, Debian 10/11, 以及CentOS 7/8操作系统。" red
 				echo
 				exit 1
 			fi
 		fi
 	else
-		say "很抱歉，此脚本仅支持Ubuntu 18/20, Debian 10, 以及CentOS 7/8操作系统。" red
+		say "很抱歉，此脚本仅支持Ubuntu 18/20, Debian 10/11, 以及CentOS 7/8操作系统。" red
 		echo 
 		exit 1
 	fi
@@ -260,6 +265,21 @@ function install_guacamole_ubuntu_debian
 	echo "请耐心等待..."
 	echo 
 	systemctl daemon-reload
+	touch /etc/guacamole/guacd.conf
+	cat >> /etc/guacamole/guacd.conf << EOF
+[daemon]
+pid_file = /var/run/guacd.pid
+#log_level = debug
+
+[server]
+#bind_host = localhost
+bind_host = 127.0.0.1
+bind_port = 4822
+
+#[ssl]
+#server_certificate = /etc/ssl/certs/guacd.crt
+#server_key = /etc/ssl/private/guacd.key
+EOF
 	systemctl start guacd
 	systemctl enable guacd
 	ss -lnpt | grep guacd >/dev/null
@@ -517,7 +537,7 @@ function install_vnc
 	echo "请按回车键继续。"
 	read catch_all
 	echo 
-	if [ "$OS" = "DEBIAN10" ] ; then
+	if [ "$OS" = "DEBIAN10" ] || [ "$OS" = "DEBIAN11" ]; then
 		apt-get install xfce4 xfce4-goodies firefox-esr tigervnc-standalone-server tigervnc-common -y
 	else 
 		apt-get install xfce4 xfce4-goodies firefox tigervnc-standalone-server tigervnc-common -y
@@ -599,8 +619,8 @@ function install_rdp
 		read catch_all
 		echo
 	fi
-	if [ "$OS" = "DEBIAN10" ] ; then
-		apt-get install xfce4 xfce4-goodies firefox-esr xrdp -y
+	if [ "$OS" = "DEBIAN10" ] || [ "$OS" = "DEBIAN11" ] ; then
+		apt-get install xfce4 xfce4-goodies firefox-esr xrdp dbus-x11 -y
 	elif [ "$OS" = "CENTOS8" ] || [ "$OS" = "CENTOS7" ] ; then
 		yum -y groupinstall "Server with GUI"
 		yum -y install firefox
@@ -769,8 +789,38 @@ function install_reverse_proxy
 		yum -y install nginx certbot python-certbot-nginx
 		systemctl enable nginx
 		systemctl start nginx
+	elif [ "$OS" = "UBUNTU20" ] ; then
+		apt install gnupg2 -y
+		wget https://nginx.org/keys/nginx_signing.key
+		apt-key add nginx_signing.key
+		rm nginx_signing.key
+		cat >> /etc/apt/sources.list.d/nginx.list << EOF
+deb https://nginx.org/packages/ubuntu/ focal nginx
+deb-src https://nginx.org/packages/ubuntu/ focal nginx
+EOF
+		apt update && apt install nginx certbot python3-certbot-nginx -y
+		systemctl enable nginx
+		systemctl start nginx
+	elif [ "$OS" = "DEBIAN11" ] ; then
+		apt install gnupg2 -y
+		wget https://nginx.org/keys/nginx_signing.key
+		apt-key add nginx_signing.key
+		rm nginx_signing.key
+		cat >> /etc/apt/sources.list.d/nginx.list << EOF
+deb https://nginx.org/packages/debian/ bullseye nginx
+deb-src https://nginx.org/packages/debian/ bullseye nginx
+EOF
+		apt update && apt install nginx certbot python3-certbot-nginx -y
+		systemctl enable nginx
+		systemctl start nginx
 	else
-		apt-get install nginx certbot python3-certbot-nginx -y
+		cat >> /etc/apt/sources.list.d/nginx.list << EOF
+deb https://nginx.org/packages/mainline/debian/ buster/ nginx
+deb-src https://nginx.org/packages/mainline/debian buster/ nginx
+EOF
+		apt update && apt install nginx certbot python3-certbot-nginx -y
+		systemctl enable nginx
+		systemctl start nginx
 	fi
 		say @B"Nginx安装成功！" green
 	cat > /etc/nginx/conf.d/guacamole.conf <<END
