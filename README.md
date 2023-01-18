@@ -6,7 +6,7 @@ Please read the orginal readme: https://github.com/Har-Kuun/OneClickDesktop/blob
 Only maintain support for Debian 11 and Ubuntu 22.04 (planed).
 
 # Note !!!
-**Since Ubuntu 22.04.1 uses OpenSSL 3.0.2, it cannot be compiled for Guacamole 1.4.0 now. This issue may be resolved when Guacamole 1.5.0 is released.**
+**Since Ubuntu 22.04.1 uses OpenSSL 3.0.2, it cannot be compiled for Guacamole 1.4.0 now. This issue may be resolved when Guacamole 1.5.0 is released.** Refer: https://github.com/MysticRyuujin/guac-install/issues/224
 
 ## How to use
 * Firstly, you need to find a spare VPS with at least 1 IPv4, and install Debian 11 64 bit (recommended) or Debian 11 64 bit Ubuntu 22.04 LTS 64 bit OS.
