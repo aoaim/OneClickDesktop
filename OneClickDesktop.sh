@@ -1,9 +1,16 @@
 #!/bin/bash
 
 ###########################################################################################
-#    One-click Desktop & Browser Access Setup Script v0.3.0                               #
+#    One-click Desktop & Browser Access Setup Script v0.2.0                               #
 #    Written by shc, modified by aoaim                                                    #
 #    Original Github link: https://github.com/Har-Kuun/OneClickDesktop                    #
+#                                                                                         #
+#    This script is distributed in the hope that it will be                               #
+#    useful, but ABSOLUTELY WITHOUT ANY WARRANTY.                                         #
+#                                                                                         #
+#    The author thanks LinuxBabe for providing detailed                                   #
+#    instructions on Guacamole setup.                                                     #
+#    https://www.linuxbabe.com/debian/apache-guacamole-remote-desktop-debian-10-buster    #
 #                                                                                         #
 #    Thank you for using this script.                                                     #
 ###########################################################################################
@@ -484,11 +491,11 @@ function install_reverse_proxy
 	echo 
 	say @B"安装 Nginx 反代..." yellow
 	sleep 2
+	apt install gnupg2 -y
+	wget https://nginx.org/keys/nginx_signing.key
+	apt-key add nginx_signing.key
+	rm nginx_signing.key
 	if [ "$OS" = "UBUNTU2204" ] ; then
-		apt install gnupg2 -y
-		wget https://nginx.org/keys/nginx_signing.key
-		apt-key add nginx_signing.key
-		rm nginx_signing.key
 		cat >> /etc/apt/sources.list.d/nginx.list << EOF
 deb https://nginx.org/packages/ubuntu/ jammy nginx
 deb-src https://nginx.org/packages/ubuntu/ jammy nginx
@@ -498,8 +505,8 @@ EOF
 		systemctl start nginx
 	else
 		cat >> /etc/apt/sources.list.d/nginx.list << EOF
-deb https://nginx.org/packages/mainline/debian/ bullseye/ nginx
-deb-src https://nginx.org/packages/mainline/debian bullseye/ nginx
+deb https://nginx.org/packages/mainline/debian/ bullseye nginx
+deb-src https://nginx.org/packages/mainline/debian bullseye nginx
 EOF
 		apt update && apt install nginx certbot python3-certbot-nginx -y
 		systemctl enable nginx
