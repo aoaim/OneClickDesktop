@@ -11,9 +11,9 @@ Only maintain support for Debian 11 and Ubuntu 22.04 (planed).
 ## How to use
 * Firstly, you need to find a spare VPS with at least 1 IPv4, and install Debian 11 64 bit (recommended) or Debian 11 64 bit Ubuntu 22.04 LTS 64 bit OS.
 * You need a domain name (can be a subdomain) which points to the IP address of your server.
-* Then, please run the following command as a sudo user in SSH.
+* Then, please run the following command as a root user in SSH.
 ```
-wget https://raw.githubusercontent.com/aoaim/OneClickDesktop/master/OneClickDesktop.sh && sudo bash OneClickDesktop.sh
+wget https://raw.githubusercontent.com/aoaim/OneClickDesktop/master/OneClickDesktop.sh && bash OneClickDesktop.sh
 ```
 * The script will guide you through the installation process.
 * If you encounter any errors, please check the `OneClickDesktop.log` file that's located within the same directory where you download this script.
