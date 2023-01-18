@@ -5,7 +5,7 @@ Please read the orginal readme: https://github.com/Har-Kuun/OneClickDesktop/blob
 
 Only maintain support for Debian 11 and Ubuntu 22.04 (planed).
 
-# Note !!!
+## Note !!!
 **Since Ubuntu 22.04.1 uses OpenSSL 3.0.2, it cannot be compiled for Guacamole 1.4.0 now. This issue may be resolved when Guacamole 1.5.0 is released.** Refer: https://github.com/MysticRyuujin/guac-install/issues/224
 
 ## How to use
@@ -25,3 +25,21 @@ There is a few plugin scripts/addons available **but it has not been tested in t
 * One-click change Guacamole login password.  Check out https://github.com/Har-Kuun/OneClickDesktop/blob/master/plugins/change-Guacamole-password.sh
 * Tutorial to install Baiduyun Net Disk client.  Check out https://github.com/Har-Kuun/OneClickDesktop/blob/master/plugins/baiduyun.md
 * A script to set up sound.  Check out https://github.com/Har-Kuun/OneClickDesktop/blob/master/plugins/Audio/readme.md
+
+## Another thing
+If you encounter "Authentication Required to Create Managed Color Device" when you logging in with non-root user:
+```
+cat >> /etc/polkit-1/localauthority.conf.d/02-allow-colord.conf << EOF
+polkit.addRule(function(action, subject) {
+ if ((action.id == "org.freedesktop.color-manager.create-device" ||
+ action.id == "org.freedesktop.color-manager.create-profile" ||
+ action.id == "org.freedesktop.color-manager.delete-device" ||
+ action.id == "org.freedesktop.color-manager.delete-profile" ||
+ action.id == "org.freedesktop.color-manager.modify-device" ||
+ action.id == "org.freedesktop.color-manager.modify-profile") &&
+ subject.isInGroup("{users}")) {
+ return polkit.Result.YES;
+ }
+ });
+EOF
+```
