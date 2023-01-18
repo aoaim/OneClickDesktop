@@ -491,23 +491,20 @@ function install_reverse_proxy
 	echo 
 	say @B"安装 Nginx 反代..." yellow
 	sleep 2
-	apt install gnupg2 -y
-	wget https://nginx.org/keys/nginx_signing.key
-	apt-key add nginx_signing.key
-	rm nginx_signing.key
+	apt install curl gnupg2 ca-certificates lsb-release debian-archive-keyring -y
+	curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor \
+    | sudo tee /usr/share/keyrings/nginx-archive-keyring.gpg >/dev/null
 	if [ "$OS" = "UBUNTU2204" ] ; then
-		cat >> /etc/apt/sources.list.d/nginx.list << EOF
-deb https://nginx.org/packages/ubuntu/ jammy nginx
-deb-src https://nginx.org/packages/ubuntu/ jammy nginx
-EOF
+		echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] \
+http://nginx.org/packages/ubuntu `lsb_release -cs` nginx" \
+    | sudo tee /etc/apt/sources.list.d/nginx.list
 		apt update && apt install nginx certbot python3-certbot-nginx -y
 		systemctl enable nginx
 		systemctl start nginx
 	else
-		cat >> /etc/apt/sources.list.d/nginx.list << EOF
-deb https://nginx.org/packages/mainline/debian/ bullseye nginx
-deb-src https://nginx.org/packages/mainline/debian bullseye nginx
-EOF
+		echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] \
+http://nginx.org/packages/debian `lsb_release -cs` nginx" \
+    | sudo tee /etc/apt/sources.list.d/nginx.list
 		apt update && apt install nginx certbot python3-certbot-nginx -y
 		systemctl enable nginx
 		systemctl start nginx
@@ -538,8 +535,8 @@ END
 		certbot --nginx --agree-tos --redirect --hsts --staple-ocsp --email $le_email -d $guacamole_hostname
 		echo 
 		if [ -f /etc/letsencrypt/live/$guacamole_hostname/fullchain.pem ] ; then
-			say @B"恭喜！Let's Encrypt SSL证书安装成功！" green
-			say @B"开始使用您的远程桌面，请在浏览器中访问 https://${guacamole_hostname}!" green
+			say @B"Let's Encrypt SSL 证书安装成功！" green
+			say @B"开始使用您的远程桌面，请在浏览器中访问 https://${guacamole_hostname} ！" green
 		else
 			say "Let's Encrypt SSL 证书安装失败。" red
 			say @B"您可以请手动执行 \"certbot --nginx --agree-tos --redirect --hsts --staple-ocsp --email $le_email -d $guacamole_hostname\"." yellow
@@ -547,9 +544,9 @@ END
 		fi
 	else
 		say @B"Let's Encrypt 证书未安装，如果您之后需要安装 Let's Encrypt 证书，请手动执行 \"certbot --nginx --agree-tos --redirect --hsts --staple-ocsp -d $guacamole_hostname\"." yellow
-		say @B"开始使用您的远程桌面，请在浏览器中访问 http://${guacamole_hostname}!" green
+		say @B"开始使用您的远程桌面，请在浏览器中访问 http://${guacamole_hostname} ！" green
 	fi
-	say @B"您的Guacamole用户名是 $guacamole_username，您的Guacamole密码是 $guacamole_password_prehash。" green
+	say @B"您的 Guacamole 用户名是 $guacamole_username，您的 Guacamole 密码是 $guacamole_password_prehash 。" green
 }
 
 function main
